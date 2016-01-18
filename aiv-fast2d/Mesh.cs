@@ -1,13 +1,15 @@
 ﻿using System;
+using System.Diagnostics;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 
 namespace Aiv.Fast2D
 {
-	public class Mesh
-	{
+	public class Mesh : IDisposable
+    {
+        private bool disposed;
 
-		private int vertexArrayId;
+        private int vertexArrayId;
 
 		public float[] v;
 		public float[] uv;
@@ -87,22 +89,48 @@ namespace Aiv.Fast2D
 		// here we update translations, scaling and rotations
 		private void ApplyMatrix ()
 		{
-			Matrix4 mvp = Matrix4.CreateTranslation (this.position.X, this.position.Y, 0) * Matrix4.CreateRotationZ (this.rotation) *
-			              Matrix4.CreateScale (this.scale.X, this.scale.Y, 1) * Context.currentWindow.OrthoMatrix;
-			// pass the matrix to the shader
-			this.shader.SetUniform ("mvp", mvp);
+            Matrix4 m = Matrix4.CreateScale(this.scale.X, this.scale.Y, 1) *
+                        Matrix4.CreateRotationZ(this.rotation) *
+                        Matrix4.CreateTranslation(this.position.X, this.position.Y, 0);
+            Matrix4 mvp = m * Context.currentWindow.OrthoMatrix;
+            // pass the matrix to the shader
+            this.shader.SetUniform ("mvp", mvp);
 		}
 
 		public void DrawTexture (Texture tex)
 		{
-			this.Bind ();
-			tex.Bind ();
-			this.shader.Use ();
-			this.ApplyMatrix ();
-			GL.DrawArrays (PrimitiveType.Triangles, 0, this.v.Length / 2);
+		    if (position.X < Context.currentWindow.Width && position.Y < Context.currentWindow.Height &&
+		        position.X + tex.Width > 0 && position.Y + tex.Height > 0)
+		    {
+		        this.Bind();
+		        tex.Bind();
+		        this.shader.Use();
+		        this.ApplyMatrix();
+		        GL.DrawArrays(PrimitiveType.Triangles, 0, this.v.Length/2);
+		    }
+        }
 
-		}
-			
-	}
+        public void Dispose()
+        {
+            if (disposed)
+                return;
+            GL.DeleteBuffer(this.vBufferId);
+            GL.DeleteBuffer(this.uvBufferId);
+            GL.DeleteVertexArray(this.vertexArrayId);
+            disposed = true;
+        }
+
+        ~Mesh()
+        {
+            if (disposed)
+                return;
+            Context.bufferGC.Add(this.vBufferId);
+            Context.bufferGC.Add(this.uvBufferId);
+            Context.vaoGC.Add(this.vertexArrayId);
+
+            disposed = true;
+        }
+
+    }
 }
 

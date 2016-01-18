@@ -25,8 +25,10 @@ void main(){
         color = texture(tex, uvout);
 }";
 
+        private static Shader spriteShader = new Shader(spriteVertexShader, spriteFragmentShader);
 
-		private int width;
+
+        private int width;
 		private int height;
 
 		public int Width {
@@ -41,7 +43,7 @@ void main(){
 			}
 		}
 
-		public Sprite (int width, int height) : base (new Shader (spriteVertexShader, spriteFragmentShader))
+        public Sprite (int width, int height) : base (spriteShader)
 		{
 			this.width = width;
 			this.height = height;

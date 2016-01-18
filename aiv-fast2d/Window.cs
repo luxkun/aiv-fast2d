@@ -45,6 +45,8 @@ namespace Aiv.Fast2D
 		Down = Key.Down,
 		Left = Key.Left,
 		Right = Key.Right,
+
+        Unknown = Key.Unknown
 	}
 
 	public class Window
@@ -114,13 +116,13 @@ namespace Aiv.Fast2D
 				fullScreen ? GameWindowFlags.Fullscreen : GameWindowFlags.FixedWindow,
 				DisplayDevice.Default, 3, 3, OpenTK.Graphics.GraphicsContextFlags.Default);
 
-			this.scaleX = this.window.Width / this.width;
-			this.scaleY = this.window.Height / this.height;
+			this.scaleX = (float)this.window.Width / this.width;
+			this.scaleY = (float)this.window.Height / this.height;
 
-			// setup viewport
-			GL.Viewport (0, 0, width, height);
-			// required for updating context !
-			this.window.Context.Update (this.window.WindowInfo);
+            // setup viewport
+            this.SetViewport(0, 0, width, height);
+            // required for updating context !
+            this.window.Context.Update (this.window.WindowInfo);
 			GL.Clear (ClearBufferMask.ColorBufferBit);
 			this.window.SwapBuffers ();
 
@@ -150,7 +152,7 @@ namespace Aiv.Fast2D
 
 
 			this._keyboardState = Keyboard.GetState ();
-			this._mouseState = Mouse.GetCursorState ();
+			//this._mouseState = Mouse.GetCursorState ();
 
 
 			// redraw
@@ -165,41 +167,75 @@ namespace Aiv.Fast2D
 			this.watch.Reset ();
 			this.watch.Start ();
 
-			GL.Clear (ClearBufferMask.ColorBufferBit);
+            // destroy useless resources
+            // use for for avoiding "changing while iterating
+            for (int i = 0; i < Context.bufferGC.Count; i++)
+            {
+                int _id = Context.bufferGC[i];
+                //Console.WriteLine("deleting " + _id);
+                GL.DeleteBuffer(_id);
+            }
+            Context.bufferGC.Clear();
 
-		}
+            for (int i = 0; i < Context.vaoGC.Count; i++)
+            {
+                int _id = Context.vaoGC[i];
+                //Console.WriteLine("deleting " + _id);
+                GL.DeleteVertexArray(_id);
+            }
+            Context.vaoGC.Clear();
 
-		public int mouseX {
-			get {
-				Point p = new Point (this._mouseState.X, this._mouseState.Y);
-				return (int)((float)this.window.PointToClient(p).X/this.scaleX);
-			}
-		}
+            for (int i = 0; i < Context.textureGC.Count; i++)
+            {
+                int _id = Context.textureGC[i];
+                //Console.WriteLine("deleting " + _id);
+                GL.DeleteTexture(_id);
+            }
+            Context.textureGC.Clear();
 
-		public int mouseY {
-			get {
-				Point p = new Point (this._mouseState.X, this._mouseState.Y);
-				return (int)((float)this.window.PointToClient(p).Y/this.scaleY);
-			}
-		}
+            for (int i = 0; i < Context.shaderGC.Count; i++)
+            {
+                int _id = Context.shaderGC[i];
+                //Console.WriteLine("deleting " + _id);
+                GL.DeleteProgram(_id);
+            }
+            Context.shaderGC.Clear();
 
-		public bool mouseLeft {
-			get {
-				return this._mouseState.IsButtonDown (MouseButton.Left);
-			}
-		}
+            GL.Clear(ClearBufferMask.ColorBufferBit);
 
-		public bool mouseRight {
-			get {
-				return this._mouseState.IsButtonDown (MouseButton.Right);
-			}
-		}
+        }
 
-		public bool mouseMiddle {
-			get {
-				return this._mouseState.IsButtonDown (MouseButton.Middle);
-			}
-		}
+		//public int mouseX {
+		//	get {
+		//		Point p = new Point (this._mouseState.X, this._mouseState.Y);
+		//		return (int)((float)this.window.PointToClient(p).X/this.scaleX);
+		//	}
+		//}
+
+		//public int mouseY {
+		//	get {
+		//		Point p = new Point (this._mouseState.X, this._mouseState.Y);
+		//		return (int)((float)this.window.PointToClient(p).Y/this.scaleY);
+		//	}
+		//}
+
+		//public bool mouseLeft {
+		//	get {
+		//		return this._mouseState.IsButtonDown (MouseButton.Left);
+		//	}
+		//}
+
+		//public bool mouseRight {
+		//	get {
+		//		return this._mouseState.IsButtonDown (MouseButton.Right);
+		//	}
+		//}
+
+		//public bool mouseMiddle {
+		//	get {
+		//		return this._mouseState.IsButtonDown (MouseButton.Middle);
+		//	}
+		//}
 
 		public bool GetKey (KeyCode key)
 		{
@@ -208,8 +244,11 @@ namespace Aiv.Fast2D
 
 		public void SetViewport (int x, int y, int width, int height)
 		{
-			GL.Viewport (x, y, width, height);
-		}
+            GL.Viewport((int)(x * this.scaleX),
+                        (int)(y * this.scaleY),
+                        (int)(width * this.scaleX),
+                        (int)(height * this.scaleY));
+        }
 	}
 }
 

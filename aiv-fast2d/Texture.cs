@@ -7,8 +7,9 @@ namespace Aiv.Fast2D
 {
 	public class Texture : IDisposable
 	{
+        private bool disposed;
 
-		private int textureId;
+        private int textureId;
 		private int width;
 		private int height;
 		private byte[] bitmap;
@@ -29,6 +30,7 @@ namespace Aiv.Fast2D
 			get {
 				return this.bitmap;
 			}
+		    set { this.bitmap = value; }
 		}
 
 		public Texture (bool linear = false, bool repeatX = false, bool repeatY = false, bool mipMap = false)
@@ -46,12 +48,12 @@ namespace Aiv.Fast2D
 
 			this.SetRepeatX (repeatX);
 
-			Console.WriteLine (Context.GetError ());
+			//Console.WriteLine (Context.GetError ());
 
 
 			this.SetRepeatY (repeatY);
 
-			Console.WriteLine (Context.GetError ());
+			//Console.WriteLine (Context.GetError ());
 		}
 
 		public Texture (int width, int height, bool linear = false, bool repeatX = false, bool repeatY = false, bool mipMap = false) : this (linear, repeatX, repeatY, mipMap)
@@ -138,11 +140,6 @@ namespace Aiv.Fast2D
 			GL.BindTexture (TextureTarget.Texture2D, this.textureId);
 		}
 
-		public void Dispose ()
-		{
-			GL.DeleteTexture (this.textureId);
-		}
-
 		public void SetRepeatX (bool repeat = true)
 		{
 			this.Bind ();
@@ -178,6 +175,23 @@ namespace Aiv.Fast2D
 				GL.TexParameter (TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMinFilter.Nearest);
 			}
 		}
-	}
+
+        public void Dispose()
+        {
+            if (disposed)
+                return;
+            GL.DeleteTexture(this.textureId);
+            disposed = true;
+        }
+
+        ~Texture()
+        {
+            if (disposed)
+                return;
+            Context.textureGC.Add(this.textureId);
+            disposed = true;
+        }
+
+    }
 }
 
