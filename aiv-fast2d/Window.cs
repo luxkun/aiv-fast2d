@@ -152,11 +152,11 @@ namespace Aiv.Fast2D
 
 
 			this._keyboardState = Keyboard.GetState ();
-			//this._mouseState = Mouse.GetCursorState ();
+            this._mouseState = Mouse.GetCursorState();
 
 
-			// redraw
-			this.window.SwapBuffers ();
+            // redraw
+            this.window.SwapBuffers ();
 
 			// get next events
 			this.window.ProcessEvents ();
@@ -205,39 +205,49 @@ namespace Aiv.Fast2D
 
         }
 
-		//public int mouseX {
-		//	get {
-		//		Point p = new Point (this._mouseState.X, this._mouseState.Y);
-		//		return (int)((float)this.window.PointToClient(p).X/this.scaleX);
-		//	}
-		//}
+        public int mouseX
+        {
+            get
+            {
+                Point p = new Point(this._mouseState.X, this._mouseState.Y);
+                return (int)((float)this.window.PointToClient(p).X / this.scaleX);
+            }
+        }
 
-		//public int mouseY {
-		//	get {
-		//		Point p = new Point (this._mouseState.X, this._mouseState.Y);
-		//		return (int)((float)this.window.PointToClient(p).Y/this.scaleY);
-		//	}
-		//}
+        public int mouseY
+        {
+            get
+            {
+                Point p = new Point(this._mouseState.X, this._mouseState.Y);
+                return (int)((float)this.window.PointToClient(p).Y / this.scaleY);
+            }
+        }
 
-		//public bool mouseLeft {
-		//	get {
-		//		return this._mouseState.IsButtonDown (MouseButton.Left);
-		//	}
-		//}
+        public bool mouseLeft
+        {
+            get
+            {
+                return this._mouseState.IsButtonDown(MouseButton.Left);
+            }
+        }
 
-		//public bool mouseRight {
-		//	get {
-		//		return this._mouseState.IsButtonDown (MouseButton.Right);
-		//	}
-		//}
+        public bool mouseRight
+        {
+            get
+            {
+                return this._mouseState.IsButtonDown(MouseButton.Right);
+            }
+        }
 
-		//public bool mouseMiddle {
-		//	get {
-		//		return this._mouseState.IsButtonDown (MouseButton.Middle);
-		//	}
-		//}
+        public bool mouseMiddle
+        {
+            get
+            {
+                return this._mouseState.IsButtonDown(MouseButton.Middle);
+            }
+        }
 
-		public bool GetKey (KeyCode key)
+        public bool GetKey (KeyCode key)
 		{
 			return this._keyboardState.IsKeyDown ((Key)key);
 		}

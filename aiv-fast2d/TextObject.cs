@@ -18,8 +18,8 @@ namespace Aiv.Fast2D
 
         public string Text { get; set; } = "";
 
-        private Sprite[] Sprites;
-        private Texture Font;
+        private Sprite[] sprites;
+        private Texture font;
         //char, from position, size
         public Dictionary<char, Tuple<Vector2, Vector2>> CharToSprite { get; set; }
 
@@ -42,49 +42,49 @@ namespace Aiv.Fast2D
         {
             if (lastDraw == null)
                 lastDraw = Tuple.Create("", Vector2.Zero, Color.White);
-            if (Font == null)
+            if (font == null)
             {
-                Font = new Texture(FontFile);
-                if (Alpha >= 0 && Alpha < 255)
-                { //Color != FontBaseColor || 
-                    for (int y = 0; y < Font.Height; y++)
+                font = new Texture(FontFile);
+                if (Color != FontBaseColor || Alpha >= 0 && Alpha < 255)
+                { 
+                    for (int y = 0; y < font.Height; y++)
                     {
-                        for (int x = 0; x < Font.Width; x++)
+                        for (int x = 0; x < font.Width; x++)
                         {
-                            int position = (y * Font.Width * 4) + (x * 4);
-                            //if (Color != FontBaseColor && 
-                            //    Font.Bitmap[position] == FontBaseColor.R && Font.Bitmap[position + 1] == FontBaseColor.G && 
-                            //    Font.Bitmap[position + 2] == FontBaseColor.B && Font.Bitmap[position + 3] == FontBaseColor.A)
-                            //{
-                            //    Font.Bitmap[position] = Color.R;
-                            //    Font.Bitmap[position + 1] = Color.G;
-                            //    Font.Bitmap[position + 2] = Color.B;
-                            //    Font.Bitmap[position + 3] = Color.A;
-                            //}
-                            if (Alpha >= 0 && Alpha < 255 && Font.Bitmap[position + 3] > 20)
-                                Font.Bitmap[position + 3] = (byte)Alpha;
+                            int position = (y * font.Width * 4) + (x * 4);
+                            if (Color != FontBaseColor &&
+                                font.Bitmap[position] == FontBaseColor.R && font.Bitmap[position + 1] == FontBaseColor.G &&
+                                font.Bitmap[position + 2] == FontBaseColor.B && font.Bitmap[position + 3] == FontBaseColor.A)
+                            {
+                                font.Bitmap[position] = Color.R;
+                                font.Bitmap[position + 1] = Color.G;
+                                font.Bitmap[position + 2] = Color.B;
+                                font.Bitmap[position + 3] = Color.A;
+                            }
+                            if (Alpha >= 0 && Alpha < 255 && font.Bitmap[position + 3] > 20)
+                                font.Bitmap[position + 3] = (byte)Alpha;
                         }
                     }
-                    Font.Update();
+                    font.Update();
                 }
             }
             if (lastDraw.Item1 != Text || lastDraw.Item2 != Scale)
             {
                 ScaledPadding = Padding*Scale.X;
-                Sprites = new Sprite[Text.Length];
+                sprites = new Sprite[Text.Length];
                 for (int i = 0; i < Text.Length; i++)
                 {
                     var c = Text[i];
                     if (c == ' ')
                     {
-                        Sprites[i] = null;
+                        sprites[i] = null;
                         continue;
                     }
-                    Sprites[i] = new Sprite(
+                    sprites[i] = new Sprite(
                         (int)(CharToSprite[c].Item2.X * Scale.X),
                         (int)(CharToSprite[c].Item2.Y * Scale.Y)
                     );
-                    Sprites[i].scale = Scale;
+                    sprites[i].scale = Scale;
                 }
                 lastDraw = Tuple.Create(Text, Scale, Color);
             }
@@ -109,9 +109,9 @@ namespace Aiv.Fast2D
                 else {
                     //width += CharToSprite[c].Item2.X + ((i + 1) < Text.Length && SpawnAnimation != 1 ? Padding : 1);
                     //h = CharToSprite[c].Item2.Y;
-                    width += Sprites[i].Width + (PaddingFunc == null ? ScaledPadding : PaddingFunc(SpaceWidth * Scale.X));
+                    width += sprites[i].Width + (PaddingFunc == null ? ScaledPadding : PaddingFunc(SpaceWidth * Scale.X));
                         //((i + 1) < Text.Length && SpawnAnimation != 1 ? ScaledPadding : 1);
-                    h = Sprites[i].Height;
+                    h = sprites[i].Height;
                 }
                 if (h > height)
                     height = h;
@@ -133,13 +133,12 @@ namespace Aiv.Fast2D
                     position.X += SpaceWidth * Scale.X + (PaddingFunc == null ? ScaledPadding : PaddingFunc(SpaceWidth * Scale.X));
                     continue;
                 }
-                Sprites[i].position = new Vector2(position.X, position.Y);
-                Sprites[i].DrawTexture(
-                    Font, (int)CharToSprite[c].Item1.X, (int)CharToSprite[c].Item1.Y,
+                sprites[i].position = new Vector2(position.X, position.Y);
+                sprites[i].DrawTexture(
+                    font, (int)CharToSprite[c].Item1.X, (int)CharToSprite[c].Item1.Y,
                     (int)CharToSprite[c].Item2.X, (int)CharToSprite[c].Item2.Y);
 
-                position.X += Sprites[i].Width + (PaddingFunc == null ? ScaledPadding : PaddingFunc(Sprites[i].Width));
-                ;
+                position.X += sprites[i].Width + (PaddingFunc == null ? ScaledPadding : PaddingFunc(sprites[i].Width));
             }
         }
 
