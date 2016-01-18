@@ -51,5 +51,14 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="bin\Debug\aiv-fast2d.dll" />
+    <Content Include="bin\Debug\aiv-fast2d.pdb" />
+    <Content Include="bin\Debug\OpenTK.dll" />
+    <Content Include="bin\Debug\OpenTK.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="bin\Release\" />
+  </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>
