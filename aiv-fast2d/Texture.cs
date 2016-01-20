@@ -1,6 +1,7 @@
 ﻿using System;
 using OpenTK.Graphics.OpenGL;
 using System.Drawing;
+using System.Linq;
 using System.Runtime.InteropServices;
 
 namespace Aiv.Fast2D
@@ -13,8 +14,12 @@ namespace Aiv.Fast2D
 		private int width;
 		private int height;
 		private byte[] bitmap;
+		private byte[] cleanBitmap;
+        private bool currentRepeatX;
+	    private bool currentRepeatY;
+	    private float currentOpacity = 1f;
 
-		public int Width {
+	    public int Width {
 			get {
 				return this.width;
 			}
@@ -46,12 +51,13 @@ namespace Aiv.Fast2D
 				this.SetNearest (mipMap);
 			}
 
+		    currentRepeatX = !repeatX;
 			this.SetRepeatX (repeatX);
 
 			//Console.WriteLine (Context.GetError ());
 
-
-			this.SetRepeatY (repeatY);
+		    currentRepeatY = !repeatY;
+			this.SetRepeatY(repeatY);
 
 			//Console.WriteLine (Context.GetError ());
 		}
@@ -138,19 +144,46 @@ namespace Aiv.Fast2D
 		{
 			GL.ActiveTexture (TextureUnit.Texture0);
 			GL.BindTexture (TextureTarget.Texture2D, this.textureId);
-		}
+        }
 
-		public void SetRepeatX (bool repeat = true)
-		{
-			this.Bind ();
-			GL.TexParameter (TextureTarget.Texture2D, TextureParameterName.TextureWrapS, repeat ? (int)TextureWrapMode.Repeat : (int)TextureWrapMode.ClampToBorder);
-		}
+        public void SetOpacity(float opacity)
+        {
+            if (currentOpacity != opacity)
+            {
+                if (cleanBitmap == null) { 
+                    // clone for future changes
+                    cleanBitmap = bitmap.ToArray();
+                }
+                for (int index = 0; index < cleanBitmap.Length; index += 4)
+                {
+                    bitmap[index] = cleanBitmap[index];
+                    bitmap[index + 1] = cleanBitmap[index + 1];
+                    bitmap[index + 2] = cleanBitmap[index + 2];
+                    bitmap[index + 3] = (byte)(cleanBitmap[index + 3] * opacity);
+                }
+                currentOpacity = opacity;
+                Update();
+            }
+        }
 
-		public void SetRepeatY (bool repeat = true)
+        public void SetRepeatX(bool repeat = true)
+        {
+            if (currentRepeatX != repeat)
+            {
+                currentRepeatX = repeat;
+                this.Bind();
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, repeat ? (int)TextureWrapMode.Repeat : (int)TextureWrapMode.ClampToBorder);
+            }
+        }
+
+        public void SetRepeatY (bool repeat = true)
 		{
-			this.Bind ();
-			GL.TexParameter (TextureTarget.Texture2D, TextureParameterName.TextureWrapT, repeat ? (int)TextureWrapMode.Repeat : (int)TextureWrapMode.ClampToBorder);
-		}
+            if (currentRepeatY != repeat) { 
+		        currentRepeatY = repeat;
+			    this.Bind ();
+			    GL.TexParameter (TextureTarget.Texture2D, TextureParameterName.TextureWrapT, repeat ? (int)TextureWrapMode.Repeat : (int)TextureWrapMode.ClampToBorder);
+            }
+        }
 
 		public void SetLinear (bool mipMap = false)
 		{
