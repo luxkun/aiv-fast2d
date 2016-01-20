@@ -11,6 +11,8 @@ namespace Aiv.Fast2D
 
         public bool Fill { get; set; }
 
+	    private Vector2 internalScaling = Vector2.One;
+
         private Tuple<bool, int, int, Color> lastRedrawInfo;
         private Texture cachedTexture;
 
@@ -28,7 +30,10 @@ namespace Aiv.Fast2D
                 lastRedrawInfo.Item3 != Height || lastRedrawInfo.Item4 != Color) // redraw
             {
                 if (Fill)
-                    Utils.FillRectangle(cachedTexture, Vector2.Zero, new Vector2(cachedTexture.Width, cachedTexture.Height), Color);
+                {
+                    internalScaling = new Vector2(cachedTexture.Width, cachedTexture.Height);
+                    Utils.FillRectangle(cachedTexture, Vector2.Zero, Vector2.One, Color);
+                }
                 else
                 {
                     // top
@@ -43,7 +48,10 @@ namespace Aiv.Fast2D
                 lastRedrawInfo = Tuple.Create(Fill, Width, Height, Color);
                 cachedTexture.Update();
             }
+            var baseScaling = scale;
+            scale *= internalScaling;
             DrawTexture(cachedTexture);
+            scale = baseScaling;
         }
 
         public Box Clone()
