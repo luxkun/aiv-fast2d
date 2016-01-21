@@ -25,6 +25,8 @@ namespace Aiv.Fast2D
 
         public Vector2 Position { get; set; }
 
+        public bool StaticColor { get; set; }
+
         private Tuple<string, Vector2, Color> lastDraw;
 
         public float Padding { get; set; }
@@ -45,14 +47,14 @@ namespace Aiv.Fast2D
             if (font == null)
             {
                 font = new Texture(FontFile);
-                if (Color != FontBaseColor || Alpha >= 0 && Alpha < 255)
+                if ((Color != FontBaseColor && !StaticColor) || (Alpha >= 0 && Alpha < 255))
                 { 
                     for (int y = 0; y < font.Height; y++)
                     {
                         for (int x = 0; x < font.Width; x++)
                         {
                             int position = (y * font.Width * 4) + (x * 4);
-                            if (Color != FontBaseColor &&
+                            if (!StaticColor && Color != FontBaseColor &&
                                 font.Bitmap[position] == FontBaseColor.R && font.Bitmap[position + 1] == FontBaseColor.G &&
                                 font.Bitmap[position + 2] == FontBaseColor.B && font.Bitmap[position + 3] == FontBaseColor.A)
                             {

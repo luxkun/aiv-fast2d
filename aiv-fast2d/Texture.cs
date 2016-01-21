@@ -168,21 +168,16 @@ namespace Aiv.Fast2D
 
         public void SetRepeatX(bool repeat = true)
         {
-            if (currentRepeatX != repeat)
-            {
-                currentRepeatX = repeat;
-                this.Bind();
-                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, repeat ? (int)TextureWrapMode.Repeat : (int)TextureWrapMode.ClampToBorder);
-            }
+            currentRepeatX = repeat;
+            this.Bind();
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, repeat ? (int)TextureWrapMode.Repeat : (int)TextureWrapMode.ClampToBorder);
         }
 
         public void SetRepeatY (bool repeat = true)
 		{
-            if (currentRepeatY != repeat) { 
-		        currentRepeatY = repeat;
-			    this.Bind ();
-			    GL.TexParameter (TextureTarget.Texture2D, TextureParameterName.TextureWrapT, repeat ? (int)TextureWrapMode.Repeat : (int)TextureWrapMode.ClampToBorder);
-            }
+		    currentRepeatY = repeat;
+			this.Bind ();
+			GL.TexParameter (TextureTarget.Texture2D, TextureParameterName.TextureWrapT, repeat ? (int)TextureWrapMode.Repeat : (int)TextureWrapMode.ClampToBorder);
         }
 
 		public void SetLinear (bool mipMap = false)
