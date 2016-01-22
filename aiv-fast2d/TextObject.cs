@@ -1,13 +1,18 @@
 ﻿using System;
-using OpenTK;
-using OpenTK.Graphics.OpenGL;
-using System.Drawing;
 using System.Collections.Generic;
+using System.Drawing;
+using OpenTK;
 
 namespace Aiv.Fast2D
 {
-	public class TextObject
-	{
+    public class TextObject
+    {
+        private bool disposed;
+        private Texture font;
+
+        private Tuple<string, Vector2, Color> lastDraw;
+
+        private Sprite[] sprites;
         public string FontFile { get; set; }
 
         public Vector2 Scale { get; set; }
@@ -17,9 +22,6 @@ namespace Aiv.Fast2D
         public Color FontBaseColor { get; set; } = Color.White;
 
         public string Text { get; set; } = "";
-
-        private Sprite[] sprites;
-        private Texture font;
         //char, from position, size
         public Dictionary<char, Tuple<Vector2, Vector2>> CharToSprite { get; set; }
 
@@ -27,14 +29,13 @@ namespace Aiv.Fast2D
 
         public bool StaticColor { get; set; }
 
-        private Tuple<string, Vector2, Color> lastDraw;
-	    private bool disposed;
-
-	    public float Padding { get; set; }
+        public float Padding { get; set; }
         // padding is ignored if paddingfunc != null
         public Func<float, float> PaddingFunc { get; set; }
         public float SpaceWidth { get; set; }
         public float SpaceHeight { get; set; }
+
+        public float ScaledPadding { get; private set; }
 
         // 0: no animation
         // 1: padding animation
@@ -49,15 +50,16 @@ namespace Aiv.Fast2D
             {
                 font = new Texture(FontFile);
                 if ((Color != FontBaseColor && !StaticColor) || (Alpha >= 0 && Alpha < 255))
-                { 
-                    for (int y = 0; y < font.Height; y++)
+                {
+                    for (var y = 0; y < font.Height; y++)
                     {
-                        for (int x = 0; x < font.Width; x++)
+                        for (var x = 0; x < font.Width; x++)
                         {
-                            int position = (y * font.Width * 4) + (x * 4);
+                            var position = y*font.Width*4 + x*4;
                             if (!StaticColor && Color != FontBaseColor &&
                                 font.Bitmap[position] == FontBaseColor.R && font.Bitmap[position + 1] == FontBaseColor.G &&
-                                font.Bitmap[position + 2] == FontBaseColor.B && font.Bitmap[position + 3] == FontBaseColor.A)
+                                font.Bitmap[position + 2] == FontBaseColor.B &&
+                                font.Bitmap[position + 3] == FontBaseColor.A)
                             {
                                 font.Bitmap[position] = Color.R;
                                 font.Bitmap[position + 1] = Color.G;
@@ -65,21 +67,21 @@ namespace Aiv.Fast2D
                                 font.Bitmap[position + 3] = Color.A;
                             }
                             if (Alpha >= 0 && Alpha < 255 && font.Bitmap[position + 3] > 20)
-                                font.Bitmap[position + 3] = (byte)Alpha;
+                                font.Bitmap[position + 3] = (byte) Alpha;
                         }
                     }
                     font.Update();
                 }
             }
-            ScaledPadding = Padding * Scale.X;
+            ScaledPadding = Padding*Scale.X;
 
-            if (lastDraw.Item1.Length != Text.Length)
+            if (lastDraw.Item1 != Text)
             {
                 if (sprites != null)
                     Dispose();
                 disposed = false;
                 sprites = new Sprite[Text.Length];
-                for (int i = 0; i < Text.Length; i++)
+                for (var i = 0; i < Text.Length; i++)
                 {
                     var c = Text[i];
                     if (c == ' ')
@@ -88,36 +90,37 @@ namespace Aiv.Fast2D
                         continue;
                     }
                     sprites[i] = new Sprite(
-                        (int)(CharToSprite[c].Item2.X),
-                        (int)(CharToSprite[c].Item2.Y)
-                    );
+                        (int) CharToSprite[c].Item2.X,
+                        (int) CharToSprite[c].Item2.Y
+                        );
                 }
             }
             lastDraw = Tuple.Create(Text, Scale, Color);
         }
 
-        public float ScaledPadding { get; private set; }
-
-	    public Vector2 Measure()
+        public Vector2 Measure()
         {
             Init();
-            float width = 0f;
-            float height = 0f;
-            for (int i = 0; i < Text.Length; i++)
+            var width = 0f;
+            var height = 0f;
+            for (var i = 0; i < Text.Length; i++)
             {
                 var c = Text[i];
                 float h;
                 if (c == ' ')
                 {
-                    width += SpaceWidth * Scale.X + (PaddingFunc == null ? ScaledPadding : PaddingFunc(SpaceWidth * Scale.X));
-                    h = SpaceHeight * Scale.Y;
+                    width += SpaceWidth*Scale.X +
+                             (PaddingFunc == null ? ScaledPadding : PaddingFunc(SpaceWidth*Scale.X));
+                    h = SpaceHeight*Scale.Y;
                 }
-                else {
+                else
+                {
                     //width += CharToSprite[c].Item2.X + ((i + 1) < Text.Length && SpawnAnimation != 1 ? Padding : 1);
                     //h = CharToSprite[c].Item2.Y;
-                    width += sprites[i].Width * Scale.X + (PaddingFunc == null ? ScaledPadding : PaddingFunc(sprites[i].Width * Scale.X));
-                        //((i + 1) < Text.Length && SpawnAnimation != 1 ? ScaledPadding : 1);
-                    h = sprites[i].Height * Scale.Y;
+                    width += sprites[i].Width*Scale.X +
+                             (PaddingFunc == null ? ScaledPadding : PaddingFunc(sprites[i].Width*Scale.X));
+                    //((i + 1) < Text.Length && SpawnAnimation != 1 ? ScaledPadding : 1);
+                    h = sprites[i].Height*Scale.Y;
                 }
                 if (h > height)
                     height = h;
@@ -131,36 +134,37 @@ namespace Aiv.Fast2D
             Init();
 
             var position = new Vector2(Position.X, Position.Y);
-            for (int i = 0; i < Text.Length; i++)
+            for (var i = 0; i < Text.Length; i++)
             {
                 var c = Text[i];
                 if (c == ' ')
                 {
-                    position.X += SpaceWidth * Scale.X + (PaddingFunc == null ? ScaledPadding : PaddingFunc(SpaceWidth * Scale.X));
+                    position.X += SpaceWidth*Scale.X +
+                                  (PaddingFunc == null ? ScaledPadding : PaddingFunc(SpaceWidth*Scale.X));
                     continue;
                 }
                 sprites[i].scale = Scale;
                 sprites[i].position = new Vector2(position.X, position.Y);
                 sprites[i].DrawTexture(
-                    font, (int)CharToSprite[c].Item1.X, (int)CharToSprite[c].Item1.Y,
-                    (int)CharToSprite[c].Item2.X, (int)CharToSprite[c].Item2.Y);
+                    font, (int) CharToSprite[c].Item1.X, (int) CharToSprite[c].Item1.Y,
+                    (int) CharToSprite[c].Item2.X, (int) CharToSprite[c].Item2.Y);
 
-                position.X += sprites[i].Width * Scale.X + (PaddingFunc == null ? ScaledPadding : PaddingFunc(sprites[i].Width * Scale.X));
+                position.X += sprites[i].Width*Scale.X +
+                              (PaddingFunc == null ? ScaledPadding : PaddingFunc(sprites[i].Width*Scale.X));
             }
         }
 
-	    public void Dispose()
-	    {
-	        if (disposed)
-	            return;
-	        foreach (var sprite in sprites)
+        public void Dispose()
+        {
+            if (disposed)
+                return;
+            foreach (var sprite in sprites)
                 sprite?.Dispose();
-	    }
-            
+        }
+
         public TextObject Clone()
         {
-            return (TextObject)MemberwiseClone();
+            return (TextObject) MemberwiseClone();
         }
-	}
+    }
 }
-

@@ -113,6 +113,7 @@ namespace Aiv.Fast2D
 			this.window = new GameWindow (width, height, OpenTK.Graphics.GraphicsMode.Default, title, 
 				fullScreen ? GameWindowFlags.Fullscreen : GameWindowFlags.FixedWindow,
 				DisplayDevice.Default, 3, 3, OpenTK.Graphics.GraphicsContextFlags.Default);
+		    this.window.Location = Point.Empty;
 
 			this.scaleX = (float)this.window.Width / this.width;
 			this.scaleY = (float)this.window.Height / this.height;
