@@ -84,8 +84,6 @@ namespace Aiv.Fast2D
 		private KeyboardState _keyboardState;
 		private MouseState _mouseState;
 
-
-
 		// used for dpi management
 		private float scaleX;
 		private float scaleY;

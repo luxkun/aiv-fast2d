@@ -28,8 +28,9 @@ namespace Aiv.Fast2D
         public bool StaticColor { get; set; }
 
         private Tuple<string, Vector2, Color> lastDraw;
+	    private bool disposed;
 
-        public float Padding { get; set; }
+	    public float Padding { get; set; }
         // padding is ignored if paddingfunc != null
         public Func<float, float> PaddingFunc { get; set; }
         public float SpaceWidth { get; set; }
@@ -70,9 +71,13 @@ namespace Aiv.Fast2D
                     font.Update();
                 }
             }
-            if (lastDraw.Item1 != Text || lastDraw.Item2 != Scale)
+            ScaledPadding = Padding * Scale.X;
+
+            if (lastDraw.Item1.Length != Text.Length)
             {
-                ScaledPadding = Padding*Scale.X;
+                if (sprites != null)
+                    Dispose();
+                disposed = false;
                 sprites = new Sprite[Text.Length];
                 for (int i = 0; i < Text.Length; i++)
                 {
@@ -83,16 +88,15 @@ namespace Aiv.Fast2D
                         continue;
                     }
                     sprites[i] = new Sprite(
-                        (int)(CharToSprite[c].Item2.X * Scale.X),
-                        (int)(CharToSprite[c].Item2.Y * Scale.Y)
+                        (int)(CharToSprite[c].Item2.X),
+                        (int)(CharToSprite[c].Item2.Y)
                     );
-                    sprites[i].scale = Scale;
                 }
-                lastDraw = Tuple.Create(Text, Scale, Color);
             }
+            lastDraw = Tuple.Create(Text, Scale, Color);
         }
 
-	    public float ScaledPadding { get; private set; }
+        public float ScaledPadding { get; private set; }
 
 	    public Vector2 Measure()
         {
@@ -111,9 +115,9 @@ namespace Aiv.Fast2D
                 else {
                     //width += CharToSprite[c].Item2.X + ((i + 1) < Text.Length && SpawnAnimation != 1 ? Padding : 1);
                     //h = CharToSprite[c].Item2.Y;
-                    width += sprites[i].Width + (PaddingFunc == null ? ScaledPadding : PaddingFunc(SpaceWidth * Scale.X));
+                    width += sprites[i].Width * Scale.X + (PaddingFunc == null ? ScaledPadding : PaddingFunc(sprites[i].Width * Scale.X));
                         //((i + 1) < Text.Length && SpawnAnimation != 1 ? ScaledPadding : 1);
-                    h = sprites[i].Height;
+                    h = sprites[i].Height * Scale.Y;
                 }
                 if (h > height)
                     height = h;
@@ -135,15 +139,24 @@ namespace Aiv.Fast2D
                     position.X += SpaceWidth * Scale.X + (PaddingFunc == null ? ScaledPadding : PaddingFunc(SpaceWidth * Scale.X));
                     continue;
                 }
+                sprites[i].scale = Scale;
                 sprites[i].position = new Vector2(position.X, position.Y);
                 sprites[i].DrawTexture(
                     font, (int)CharToSprite[c].Item1.X, (int)CharToSprite[c].Item1.Y,
                     (int)CharToSprite[c].Item2.X, (int)CharToSprite[c].Item2.Y);
 
-                position.X += sprites[i].Width + (PaddingFunc == null ? ScaledPadding : PaddingFunc(sprites[i].Width));
+                position.X += sprites[i].Width * Scale.X + (PaddingFunc == null ? ScaledPadding : PaddingFunc(sprites[i].Width * Scale.X));
             }
         }
 
+	    public void Dispose()
+	    {
+	        if (disposed)
+	            return;
+	        foreach (var sprite in sprites)
+                sprite?.Dispose();
+	    }
+            
         public TextObject Clone()
         {
             return (TextObject)MemberwiseClone();
