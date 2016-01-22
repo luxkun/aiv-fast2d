@@ -8,12 +8,12 @@ namespace Aiv.Fast2D
     public class TextObject
     {
         private bool disposed;
-        private Texture font;
+        public Texture FontTexture { get; set; }
+        private bool initialized = false;
 
         private Tuple<string, Vector2, Color> lastDraw;
 
         private Sprite[] sprites;
-        public string FontFile { get; set; }
 
         public Vector2 Scale { get; set; }
         public Color Color { get; set; }
@@ -46,31 +46,31 @@ namespace Aiv.Fast2D
         {
             if (lastDraw == null)
                 lastDraw = Tuple.Create("", Vector2.Zero, Color.White);
-            if (font == null)
+            if (!initialized)
             {
-                font = new Texture(FontFile);
+                initialized = true;
                 if ((Color != FontBaseColor && !StaticColor) || (Alpha >= 0 && Alpha < 255))
                 {
-                    for (var y = 0; y < font.Height; y++)
+                    for (var y = 0; y < FontTexture.Height; y++)
                     {
-                        for (var x = 0; x < font.Width; x++)
+                        for (var x = 0; x < FontTexture.Width; x++)
                         {
-                            var position = y*font.Width*4 + x*4;
+                            var position = y* FontTexture.Width*4 + x*4;
                             if (!StaticColor && Color != FontBaseColor &&
-                                font.Bitmap[position] == FontBaseColor.R && font.Bitmap[position + 1] == FontBaseColor.G &&
-                                font.Bitmap[position + 2] == FontBaseColor.B &&
-                                font.Bitmap[position + 3] == FontBaseColor.A)
+                                FontTexture.Bitmap[position] == FontBaseColor.R && FontTexture.Bitmap[position + 1] == FontBaseColor.G &&
+                                FontTexture.Bitmap[position + 2] == FontBaseColor.B &&
+                                FontTexture.Bitmap[position + 3] == FontBaseColor.A)
                             {
-                                font.Bitmap[position] = Color.R;
-                                font.Bitmap[position + 1] = Color.G;
-                                font.Bitmap[position + 2] = Color.B;
-                                font.Bitmap[position + 3] = Color.A;
+                                FontTexture.Bitmap[position] = Color.R;
+                                FontTexture.Bitmap[position + 1] = Color.G;
+                                FontTexture.Bitmap[position + 2] = Color.B;
+                                FontTexture.Bitmap[position + 3] = Color.A;
                             }
-                            if (Alpha >= 0 && Alpha < 255 && font.Bitmap[position + 3] > 20)
-                                font.Bitmap[position + 3] = (byte) Alpha;
+                            if (Alpha >= 0 && Alpha < 255 && FontTexture.Bitmap[position + 3] > 20)
+                                FontTexture.Bitmap[position + 3] = (byte) Alpha;
                         }
                     }
-                    font.Update();
+                    FontTexture.Update();
                 }
             }
             ScaledPadding = Padding*Scale.X;
@@ -146,7 +146,7 @@ namespace Aiv.Fast2D
                 sprites[i].scale = Scale;
                 sprites[i].position = new Vector2(position.X, position.Y);
                 sprites[i].DrawTexture(
-                    font, (int) CharToSprite[c].Item1.X, (int) CharToSprite[c].Item1.Y,
+                    FontTexture, (int) CharToSprite[c].Item1.X, (int) CharToSprite[c].Item1.Y,
                     (int) CharToSprite[c].Item2.X, (int) CharToSprite[c].Item2.Y);
 
                 position.X += sprites[i].Width*Scale.X +

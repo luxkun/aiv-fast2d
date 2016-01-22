@@ -17,7 +17,7 @@ namespace Aiv.Fast2D
 		private byte[] cleanBitmap;
         private bool currentRepeatX;
 	    private bool currentRepeatY;
-	    private float currentOpacity = 1f;
+	    public float CurrentOpacity { get; private set; } = 1f;
 
 	    public int Width {
 			get {
@@ -38,10 +38,28 @@ namespace Aiv.Fast2D
 		    set { this.bitmap = value; }
 		}
 
+	    public Texture Clone()
+	    {
+	        var go = new Texture(Linear, currentRepeatX, currentRepeatY, MipMap)
+	        {
+                Bitmap = Bitmap.ToArray(),
+                width = width, height = height
+	        };
+	        go.cleanBitmap = go.Bitmap;
+            if (CurrentOpacity != 1f)
+                go.SetOpacity(CurrentOpacity);
+            else
+                go.Update();
+	        return go;
+	    }
+
 		public Texture (bool linear = false, bool repeatX = false, bool repeatY = false, bool mipMap = false)
 		{
 			GL.ActiveTexture (TextureUnit.Texture0);
 			this.textureId = GL.GenTexture ();
+
+		    this.MipMap = mipMap;
+		    this.Linear = linear;
 
 			this.Bind ();
 
@@ -62,7 +80,11 @@ namespace Aiv.Fast2D
 			//Console.WriteLine (Context.GetError ());
 		}
 
-		public Texture (int width, int height, bool linear = false, bool repeatX = false, bool repeatY = false, bool mipMap = false) : this (linear, repeatX, repeatY, mipMap)
+	    public bool Linear { get; private set; }
+
+	    public bool MipMap { get; }
+
+	    public Texture (int width, int height, bool linear = false, bool repeatX = false, bool repeatY = false, bool mipMap = false) : this (linear, repeatX, repeatY, mipMap)
 		{
 			this.width = width;
 			this.height = height;
@@ -148,7 +170,7 @@ namespace Aiv.Fast2D
 
         public void SetOpacity(float opacity)
         {
-            if (currentOpacity != opacity)
+            if (CurrentOpacity != opacity)
             {
                 if (cleanBitmap == null) { 
                     // clone for future changes
@@ -161,7 +183,7 @@ namespace Aiv.Fast2D
                     bitmap[index + 2] = cleanBitmap[index + 2];
                     bitmap[index + 3] = (byte)(cleanBitmap[index + 3] * opacity);
                 }
-                currentOpacity = opacity;
+                CurrentOpacity = opacity;
                 Update();
             }
         }
@@ -182,6 +204,7 @@ namespace Aiv.Fast2D
 
 		public void SetLinear (bool mipMap = false)
 		{
+		    Linear = true;
 			this.Bind ();
 			if (mipMap) {
 				GL.TexParameter (TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear);
@@ -194,8 +217,9 @@ namespace Aiv.Fast2D
 
 		public void SetNearest (bool mipMap = false)
 		{
+		    Linear = false;
 			this.Bind ();
-			if (mipMap) {
+            if (mipMap) {
 				GL.TexParameter (TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.NearestMipmapNearest);
 				GL.TexParameter (TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMinFilter.NearestMipmapNearest);
 			} else {
