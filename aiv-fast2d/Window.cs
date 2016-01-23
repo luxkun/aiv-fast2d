@@ -96,7 +96,7 @@ namespace Aiv.Fast2D
 			}
 		}
 
-		public Window (int width, int height, string title, bool fullScreen = false)
+		public Window (int width, int height, string title, bool fullScreen = false, bool vsync = false)
 		{
 			this.aspectRatio = (float)width / (float)height;
 
@@ -114,8 +114,9 @@ namespace Aiv.Fast2D
 				fullScreen ? GameWindowFlags.Fullscreen : GameWindowFlags.FixedWindow,
 				DisplayDevice.Default, 3, 3, OpenTK.Graphics.GraphicsContextFlags.Default);
 		    this.window.Location = Point.Empty;
+            this.window.VSync = vsync ? VSyncMode.On : VSyncMode.Off;
 
-			this.scaleX = (float)this.window.Width / this.width;
+            this.scaleX = (float)this.window.Width / this.width;
 			this.scaleY = (float)this.window.Height / this.height;
 
             // setup viewport
